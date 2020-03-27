@@ -35,10 +35,10 @@ def PIDcontroller(x_input):
     normx_prev_error = normalize(-300,300,-1,1, x_prev_error)
 
     new_PWM += Kp*normx_error + Kd*normx_prev_error + Ki*x_error_sum
-	if new_PWM >= 300:
-		new_PWM = 300
-	elif new_PWM <= -300:
-		new_PWM = -300
+    if new_PWM >= 300:
+        new_PWM = 300
+    elif new_PWM <= -300:
+        new_PWM = -300
 
     #new_PWM = normalize(0,600,0,100, new_PWM)
 
@@ -46,7 +46,7 @@ def PIDcontroller(x_input):
     x_prev_error=x_error
     x_error_sum+=x_error_sum
     print('new_PWM')
-	return new_PWM
+    return new_PWM
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -108,44 +108,42 @@ while True:
 	center = None
 
 	# only proceed if at least one contour was found
-	if len(cnts) > 0:
-		# find the largest contour in the mask, then use
-		# it to compute the minimum enclosing circle and
-		# centroid
-		c = max(cnts, key=cv2.contourArea)
-		((x, y), radius) = cv2.minEnclosingCircle(c)
-		M = cv2.moments(c)
-		center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        if len(cnts) > 0:
+	    # find the largest contour in the mask, then use
+	    # it to compute the minimum enclosing circle and
+	    # centroid
+	    c = max(cnts, key=cv2.contourArea)
+	    ((x, y), radius) = cv2.minEnclosingCircle(c)
+	    M = cv2.moments(c)
+	    center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
 
-		# display position
-		xpos=center[0]
-		ypos=center[1]
-		cv2.putText(frame, "X: {}, Y: {}".format(xpos,ypos), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-		0.65, (0, 0, 255), 2)
+	    # display position
+	    xpos=center[0]
+	    ypos=center[1]
+            cv2.putText(frame, "X: {}, Y: {}".format(xpos,ypos), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,0.65, (0, 0, 255), 2)
 
-		# draw line from point to center
-		cv2.rectangle(frame, (300, ypos+3), (xpos, ypos-3), (0, 0, 255), -1)
-		center_dis=xpos-300
-		#PIDcontroller(center_dis)
-		PWM = PIDcontroller(center_dis)
-		p1 = GPIO.PWM(motor1, PWM)
-		p1.start(0)
-		p2 = GPIO.PWM(motor2, PWM)
-		p2.start(0)
+	    # draw line from point to center
+	    cv2.rectangle(frame, (300, ypos+3), (xpos, ypos-3), (0, 0, 255), -1)
+	    center_dis=xpos-300
+	    #PIDcontroller(center_dis)
+	    PWM = PIDcontroller(center_dis)
+	    p1 = GPIO.PWM(motor1, PWM)
+	    p1.start(0)
+	    p2 = GPIO.PWM(motor2, PWM)
+	    p2.start(0)
 
-		while True:
-			p1.ChangeDutyCycle(dc)
-			p2.ChangeDutyCycle(dc)
-		    GPIO.cleanup()
-		    sys.exit(0)
-		# only proceed if the radius meets a minimum size
-		if radius > 10:
-			# draw the circle and centroid on the frame,
-			# then update the list of tracked points
-			cv2.circle(frame, (int(x), int(y)), int(radius),
-				(0, 255, 255), 2)
-			cv2.circle(frame, center, 5, (0, 0, 255), -1)
+	    while True:
+                p1.ChangeDutyCycle(dc)
+		p2.ChangeDutyCycle(dc)
+            GPIO.cleanup()
+            sys.exit(0)
+	    # only proceed if the radius meets a minimum size
+	    if radius > 10:
+		# draw the circle and centroid on the frame,
+		# then update the list of tracked points
+		cv2.circle(frame, (int(x), int(y)), int(radius),(0, 255, 255), 2)
+		cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
 
 	# draw center line of frame
