@@ -18,6 +18,36 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(motor1, GPIO.OUT)
 GPIO.setup(motor2, GPIO.OUT)
 
+def normalize(min, max, new_min, new_max, value):
+    new_value = ((value-min)/(max-min))*(new_max-new_min)+new_min
+
+def PIDcontroller(x_input):
+    #from motor_test (for running DC brushed motors with RPi4)
+    #set target value for the car to center at
+    target = 0
+    Kp,Kd,Ki=.02,.01,.005
+
+    x_error_sum = 0
+    x_error = target - x_input
+    x_prev_error = 0
+
+    normx_error = normalize(-300,300,-1,1, x_error)
+    normx_prev_error = normalize(-300,300,-1,1, x_prev_error)
+
+    new_PWM += Kp*normx_error + Kd*normx_prev_error + Ki*x_error_sum
+	if new_PWM >= 300:
+		new_PWM = 300
+	elif new_PWM <= -300:
+		new_PWM = -300
+
+    #new_PWM = normalize(0,600,0,100, new_PWM)
+
+    #sleep(SAMPLETIME)
+    x_prev_error=x_error
+    x_error_sum+=x_error_sum
+    print('new_PWM')
+	return new_PWM
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video",
@@ -97,8 +127,8 @@ while True:
 		# draw line from point to center
 		cv2.rectangle(frame, (300, ypos+3), (xpos, ypos-3), (0, 0, 255), -1)
 		center_dis=xpos-300
-		PIDcontroller(center_dis)
-		PWM = PIDcontroller.new_PWM
+		#PIDcontroller(center_dis)
+		PWM = PIDcontroller(center_dis)
 		p1 = GPIO.PWM(motor1, PWM)
 		p1.start(0)
 		p2 = GPIO.PWM(motor2, PWM)
@@ -141,33 +171,3 @@ else:
 
 # close all windows
 cv2.destroyAllWindows()
-
-
-def PIDcontroller(x_input):
-    #from motor_test (for running DC brushed motors with RPi4)
-    #set target value for the car to center at
-    target = 0
-    Kp,Kd,Ki=.02,.01,.005
-
-    x_error_sum = 0
-    x_error = target - x_input
-    x_prev_error = 0
-
-    normx_error = normalize(-300,300,-1,1, x_error)
-    normx_prev_error = normalize(-300,300,-1,1, x_prev_error)
-
-    new_PWM += Kp*normx_error + Kd*normx_prev_error + Ki*x_error_sum
-	if new_PWM >= 300:
-		new_PWM = 300
-	elif new_PWM <= -300:
-		new_PWM = -300
-
-    #new_PWM = normalize(0,600,0,100, new_PWM)
-
-    #sleep(SAMPLETIME)
-    x_prev_error=x_error
-    x_error_sum+=x_error_sum
-    print('new_PWM')
-
-def normalize(min, max, new_min, new_max, value):
-    new_value = ((value-min)/(max-min))*(new_max-new_min)+new_min
